@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.example.tutorials.hibernate.hibernateTutorial.domain;
 
 import java.util.Calendar;

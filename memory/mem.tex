@@ -235,9 +235,29 @@ mvn clean compile exec:java -Dexec.mainClass=org.example.tutorials.hibernate.hib
     \includegraphics[width=0.7\textwidth]{commit01/img/UmlClass.pdf}
   \caption{Diagrama de clases}
   \label{fig:c01:UmlClass}
-\end{figure}		
+\end{figure}	
 	
+\section{Commit 2. Ordenando el código}
+	En la iteración anterior se puso en marcha un ejemplo sencillo para empezar a usar Hibernate y aunque funciona el código este no es estructuralmente correcto. Sería más correcto tratar de ocultar los mecanismos de persistencia de los datos ya que la lógica de negocio tendría que ser independiente del método de persistencia se empleé (debería de dar igual si se usa un SGBD, un archivo plano...). Para estos casos se usa un patrón conocido como DAO\cite{Dao}.
 
+\begin{figure}[h]
+  \centering
+    \includegraphics[width=0.9\textwidth]{commit02/img/UmlClass.pdf}
+  \caption{Diagrama de clases}
+  \label{fig:c02:UmlClass}
+\end{figure}	
+
+\subsection{Implementación del patrón DAO}
+	El objetivo de esta iteración es implementar el patrón DAO para el uso de los eventos. La idea es que al final tengamos algo como en la imagen \ref{fig:c02:UmlClass}. Como podemos ver en la imagen \ref{fig:c02:UmlClass} la clase \emph{App} que es lo que sería la lógica de negocio no sabe que mecanismo de persistencia se está empleando, el solo hace las peticiones a través de una interfaz llamada \emph{EventDao}. La implementación de la interfaz, que en este caso es \emph{EventDaoHibernate}, es la encargada de usar los mecanismos de persistencia necesarios y funciona como una caja negra. La clase \emph{EventDaoHibernate} funciona como una caja negra ya que es quien trata la persistencia de los objetos \emph{Event}. La ventaja de usar este patrón es que si el día de mañana cambian la manera de tratar los datos basta con realizar la implementación adecuada de la interfaz \emph{EventDao} para que todo funcione correctamente.
+	
+	La interfaz \emph{EventDao} queda de la siguiente manera:
+\lstinputlisting[style=java]{commit02/code/EventDao.java}
+
+	La implementación de la interfaz del DAO (\emph{EventDaoHibernate}) queda de la siguiente manera:
+\lstinputlisting[style=java]{commit02/code/EventDaoHibernate.java}
+
+	La otra clase que se ha modificado para un uso adecuado ha sido la clase \emph{App}:
+\lstinputlisting[style=java]{commit02/code/App.java}
 
 \clearpage
 \newpage
@@ -255,14 +275,10 @@ Tipos de datos de Hibernate
 \url{http://docs.jboss.org/hibernate/orm/4.3/manual/en-US/html/ch06.html\#types-value}
 
 \url{http://www.tutorialspoint.com/hibernate/hibernate\_mapping\_types.htm}
-\bibitem{EC2}
-Página de introducción de Amazon EC2.
+\bibitem{Dao}
+Patrón Dao (\textit{Data Access Object})
 
-\url{http://aws.amazon.com/es/ec2/}
-\bibitem{VPC}
-Documentación sobre Amazon Virtual Private Cloud.
-
-\url{http://aws.amazon.com/es/documentation/vpc/}
+\url{http://gl.wikipedia.org/wiki/Data_access_object}
 \end{thebibliography}
 
 \end{document}

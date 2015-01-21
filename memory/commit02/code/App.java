@@ -12,27 +12,8 @@ import org.example.tutorials.hibernate.hibernateTutorial.utils.HibernateUtil;
 public class App 
 {
 	
- 	private static void printSeparator(String str) {
-		int size = 80;
-		int cnt = 0;
-		if (!str.isEmpty()) {
-			size = size - 2 -str.length();
-			if (size < 4)
-				size = 4;
-		}
-		for (; cnt < size/2; cnt++) {
-			System.out.print("-");
-		}
-		if (!str.isEmpty())
-			System.out.print(" "+str+" ");
-		for (; cnt < size; cnt++) {
-			System.out.print("-");
-		}
-		System.out.println();
-	}
-	private static void printSeparator(){
-		printSeparator("");
-	}
+ 	private static void printSeparator(String str) {...}
+	private static void printSeparator(){...}
 	
 	private EventDao eventDao;
 	public App() {
