@@ -27,7 +27,7 @@
 		<property name="show_sql">true</property>
 		
 		<!-- mapping resources -->
-		<mapping resource="org/example/tutorials/hibernate/hibernateTutorial/domain/Event.hbm.xml"/>
+		<mapping class="org.example.tutorials.hibernate.hibernateTutorial.domain.Event"/>
 		
 	</session-factory>
 </hibernate-configuration>

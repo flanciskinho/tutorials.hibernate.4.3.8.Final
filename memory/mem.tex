@@ -259,6 +259,61 @@ mvn clean compile exec:java -Dexec.mainClass=org.example.tutorials.hibernate.hib
 	La otra clase que se ha modificado para un uso adecuado ha sido la clase \emph{App}:
 \lstinputlisting[style=java]{commit02/code/App.java}
 
+\section{Commit 3. Don't Repeat Yourself}
+	Como hemos podido ver en la iteración anterior, se puede separar la parte que se encarga de realizar las operaciones de persistencia con el resto del código. Pero como podemos ver en la imagen \ref{fig:c03:Dry} se está repitiendo información (que exactamente lo dice el principio DRY\footnote{ \textit{Don't repeat yourself} \url{http://es.wikipedia.org/wiki/No_te_repitas}} que no hagamos).
+
+\begin{figure}[h]
+  \centering
+    \includegraphics[width=0.25\textwidth]{commit03/img/Dry.pdf}
+  \caption{Repetición de información en Hibernate}
+  \label{fig:c03:Dry}
+\end{figure}	
+
+	La forma de evitar repetir la información es que se unifique lo que hay en el fichero de recurso \emph{Event.hbm.xml} con lo que hay en la clase \emph{Event.java}. El problema de realizar esto es que en la clase persistente metemos información que no está relacionada con ella (cosa que rompe el principio que se evitó en la iteración anterior). Esto nos lleva a tener que eligir tener un problema y sólo una solución:
+{\setlength{\parskip}{0mm}
+\begin{enumerate}
+	\item Tener la parte de la persistencia separada del código y tener información repetida.
+	\item No repetir información y tener parte de como se lleva a cabo la fuera de la zona que ``debería'' estar.
+\end{enumerate}
+}
+	La opción que se suele escoger es la segunda por dos motivos. Uno es que no es habitual cambiar el método de persistencia (no se suele cambiar de SGBD) y la repetición de información puede tener grandes problemas de mantenimiento.
+	
+\subsection{Cambio del fichero hbm.xml por anotaciones}
+	La forma de tener unificada la información del fichero \emph{Event.hbm.xml} y la clase \emph{Event.java} es usando anotaciones.
+	
+	El primer paso a realizar es eliminar el fichero \emph{Event.hbm.xml}; por eso hay que eliminar del fichero \emph{hibernate.cfg.xml} la referencia a ese fichero que era la siguiente línea:
+\begin{lstlisting}[style=xml]
+<mapping
+    resource="org/example/tutorials/hibernate/hibernateTutorial/domain/Event.hbm.xml"/>
+\end{lstlisting}
+pero hay que indicarle que ahora hay una clase persistente (cuya información de persistencia está incluida en ella), lo que se indica de la siguiente manera:
+\begin{lstlisting}[style=xml]
+<mapping class="org.example.tutorials.hibernate.hibernateTutorial.domain.Event"/>
+\end{lstlisting}
+
+	Ahora en la clase \emph{Event.java} hay que indicar mediante anotaciones lo que había en el fichero \emph{Event.hbm.xml} de tal manera que queda algo tal que así:
+\lstinputlisting[style=java]{commit03/code/Event.java}
+
+	Lo primero que hay que hacer es indicar que eso es una clase persistente. Eso se especifica con la Anotación \emph{@Entity} encima de la declaración de la clase. También indicamos el nombre de la tabla con la anotación \emph{@Table(name =``EVENTS'')} donde \emph{EVENTS} es el nombre de la tabla con el que se realizará el mapeo. La forma de indicar que métodos trabajan con que columnas es con la etiqueta \emph{@Column(name = ``EVENT\_DATE'')} donde \emph{EVENT\_DATE} es el nombre de la columna sobre la que se realizan las operaciones en la BBDD. Por último para indicar cual es el identificador de la tabla basta con añadir la anotación \emph{@Id}. Normalmente los identificadores los genera el propio SGBD que tienen dos maneras de hacerlo
+{\setlength{\parskip}{0mm}
+\begin{enumerate}
+	\item Mediante secuencias (como por ejemplo Oracle)
+	\item Mediante identificadores autoincrementales (como MySQL)
+\end{enumerate}
+}
+
+	En este caso estamos usando la segunda opción que se indica con la anotación \emph{@GeneratedValue(strategy = ``GenerationType.IDENTITY'')}. Para el segundo caso habría que poner algo del estilo:
+\begin{lstlisting}[style=java]
+@Column(name ="EVENT_ID")
+@SequenceGenerator(          // It only takes effect for
+  name = "EventIdGenerator", // databases providing identifier
+  sequenceName = "EventSeq") // generators.
+@Id
+@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EventdGenerator")
+\end{lstlisting}
+
+	Una de las cosas por la que también nos decantamos por unificar la información del fichero \emph{Event.hbm.xml} y la clase \emph{Event.java} es que aunque se introduce información en la clase persistente no se introduce información del ORM que estamos usando, de tal manera que sólo las implementaciones de las interfaces de los DAOs saben que ORM están usando.
+
 \clearpage
 \newpage
 \listoffigures
