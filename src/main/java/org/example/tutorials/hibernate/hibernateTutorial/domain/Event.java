@@ -4,10 +4,12 @@ import java.util.Calendar;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.SequenceGenerator;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 /**
@@ -22,16 +24,18 @@ public class Event {
 	private Long id;
 	private String title;
 	private Calendar date;
+	private Category category;
 
 	public Event() {}
 	
-	public Event(String title) {
-		this(title, Calendar.getInstance());
+	public Event(String title, Category category) {
+		this(title, Calendar.getInstance(), category);
 	}
 	
-	public Event(String title, Calendar date) {
-		this.title = title;
-		this.date = date;
+	public Event(String title, Calendar date, Category category) {
+		this.title    = title;
+		this.date     = date;
+		this.category = category;
 	}
 
 	@Column(name = "EVENT_ID")
@@ -58,6 +62,15 @@ public class Event {
 	}
 	public void setTitle(String title) {
 		this.title = title;
+	}
+	
+	@ManyToOne(optional=false, fetch=FetchType.LAZY)
+	@JoinColumn(name = "category")
+	public Category getCategory() {
+		return this.category;
+	}
+	public void setCategory(Category category) {
+		this.category = category;
 	}
 	
 	@Override

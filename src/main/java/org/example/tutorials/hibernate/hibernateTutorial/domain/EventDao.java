@@ -11,5 +11,5 @@ public interface EventDao {
 
 	public void removeByFilter(String filter);
 	public List<Event> getEventsByFilter(String filter);
-	public Event insertEvent(String title);
+	public Event insertEvent(String title, Category category);
 }

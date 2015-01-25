@@ -39,6 +39,10 @@ public class HibernateUtil {
 			return sessionFactory;
 		}
 		
+		/**
+		 * Este metodo cierra la instancia unica de serviceRegister y libera todos sus recuros
+		 * (informacion de mapping, pool de conexiones ...)
+		 */
 		public static void stopConnectionProvider() {
 			if (serviceRegistry != null) {
 				StandardServiceRegistryBuilder.destroy(serviceRegistry);

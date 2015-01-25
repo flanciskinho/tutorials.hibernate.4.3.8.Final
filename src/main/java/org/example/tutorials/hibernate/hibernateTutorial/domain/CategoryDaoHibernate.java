@@ -13,36 +13,37 @@ import org.hibernate.Transaction;
  * @author flanciskinho
  *
  */
-public class EventDaoHibernate implements EventDao{
+public class CategoryDaoHibernate implements CategoryDao {
 
-	public List<Event> getEventsByFilter(String filter) {
+	@Override
+	public List<Category> getCategories(String filter) {
 		Session session = HibernateUtil.getSessionFactory().openSession();
     	Transaction transaction = null;
     	
-    	List<Event> list;
+    	List<Category> list = null;
     	
     	try {
     		transaction = session.beginTransaction();
     	
     		boolean doFilter = false;
     		String aux =
-    				"SELECT e " +
-    	    		"FROM Event e ";
+    				"SELECT c " +
+    	    		"FROM Category c ";
     		if (filter != null) {
     			if (!filter.trim().isEmpty()) {
-    				aux = aux + "WHERE UPPER(e.title) LIKE CONCAT('%', :titleFilter, '%')";
+    				aux = aux + "WHERE UPPER(c.description) LIKE CONCAT('%', :descFilter, '%')";
     				doFilter = true;
     			}
     		}
     		Query query = session.createQuery(aux);
     		if (doFilter)
-    			query.setString("titleFilter", filter.toUpperCase());
+    			query.setString("descFilter", filter.toUpperCase());
     		list = query.list();
     		
     		transaction.commit();
     	} catch (HibernateException e) {
     		transaction.rollback();
-    		list = new ArrayList<Event>();
+    		list = new ArrayList<Category>();
     	} finally {
     		session.close();
     	}
@@ -50,17 +51,17 @@ public class EventDaoHibernate implements EventDao{
     	return list;
 	}
 
-	public Event insertEvent(String title, Category category) {
+	@Override
+	public Category insertCategory(String desc) {
 		Session session = HibernateUtil.getSessionFactory().openSession();
     	Transaction transaction = null;
-    	Event event = null;
     	
+    	Category category = null;
     	try {
     		transaction = session.beginTransaction();
     		
-    		event = new Event(title, category);
-        	session.saveOrUpdate(event);
-        	
+    		category = new Category(desc);
+    		session.saveOrUpdate(category);
     		
     		transaction.commit();
     	} catch (HibernateException e) {
@@ -68,41 +69,27 @@ public class EventDaoHibernate implements EventDao{
     	} finally {
     		session.close();
     	}
-    	
-    	return event;
+    	return category;
 	}
-	
-	public void removeByFilter(String filter) {
+
+	@Override
+	public void removeCategory(long id) {
 		Session session = HibernateUtil.getSessionFactory().openSession();
     	Transaction transaction = null;
     	
     	try {
     		transaction = session.beginTransaction();
     	
-    		boolean doFilter = false;
-    		String aux =
-    				"SELECT e " +
-    	    		"FROM Event e ";
-    		if (filter != null) {
-    			if (!filter.trim().isEmpty()) {
-    				aux = aux + "WHERE UPPER(e.title) LIKE CONCAT('%', :titleFilter, '%')";
-    				doFilter = true;
-    			}
-    		}
-    		Query query = session.createQuery(aux);
-    		if (doFilter)
-    			query.setString("titleFilter", filter.toUpperCase());
-    		List<Event> list = query.list();
-    		for (Event event:list) {
-    			session.delete(event);
-    		}
+    		Category category = (Category) session.get(Category.class, id);
+    		session.delete(category);
     		
     		transaction.commit();
     	} catch (HibernateException e) {
     		transaction.rollback();
+    	
     	} finally {
     		session.close();
     	}
-		
 	}
+
 }

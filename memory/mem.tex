@@ -152,7 +152,7 @@ mkdir -p src/main/resources/org/example/tutorials/hibernate/hibernateTutorial
 
 \subsection{Creando una tabla para los eventos}
 	Para poder dotar de persistencia a los datos necesitamos tener un sitio donde poder guardar los datos nuevos y poder recuperar los datos viejos así que para eso creamos un archivo sql que genere una tabla para guardar eventos
-\lstinputlisting[style=xml]{commit01/code/01-CreateTables.sql}
+\lstinputlisting[style=sql]{commit01/code/01-CreateTables.sql}
 
 	Como podemos ver en el archivo sql, la tabla eventos almacena instancias de eventos que tendrán un identificador (que no es más que un entero), una fecha (que es una fecha) y un título (que es una cadena de caracteres).
 
@@ -309,14 +309,100 @@ pero hay que indicarle que ahora hay una clase persistente (cuya información de
   name = "EventIdGenerator", // databases providing identifier
   sequenceName = "EventSeq") // generators.
 @Id
-@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EventdGenerator")
+@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EventIdGenerator")
 \end{lstlisting}
 
 	Una de las cosas por la que también nos decantamos por unificar la información del fichero \emph{Event.hbm.xml} y la clase \emph{Event.java} es que aunque se introduce información en la clase persistente no se introduce información del ORM que estamos usando, de tal manera que sólo las implementaciones de las interfaces de los DAOs saben que ORM están usando.
 
+\section{Commit 4.  Empezando a relacionarse}
+
+	Hasta ahora hemos empezado a usar hibernate con solo una clase persistente, lo que no es muy realista. Lo normal es que exista más de una clase persistente y existan ciertas relaciones entre ellas. En este aparatado vamos a incluir los eventos en una categoría.
+
+\subsection{Modelado}
+\begin{figure}[h]
+  \centering
+    \includegraphics[width=0.5\textwidth]{commit04/img/ER.pdf}
+  \caption{Diagrama entidad relación}
+  \label{fig:c04:ER}
+\end{figure}	
+
+	Al clasificar los eventos el gráfico relacional nos quedaría como se muestra en la figura \ref{fig:c04:ER} en donde podemos ver, que a la hora de implementarlo como clases persistentes, podemos poner que el evento está asociado a una categoría y que una categoría tiene una lista de eventos. Realmente lo que se hace es modelar que los eventos pertenecen a una categoría. La parte en la que se indica mediante un atributo una lista de eventos no se modela porque una categoría puede tener millones de eventos, lo que al traerlos de la BBDD supone un gran coste para que después, muy probablemente, no se lleguen a usar.
+	
+	Así pues el diagrama de clases para representar los eventos y las categorías quedaría como se muestra en la imagen \ref{fig:c04:EventCategory}.
+
+\begin{figure}[h]
+  \centering
+    \includegraphics[width=0.5\textwidth]{commit04/img/EventCategory.pdf}
+  \caption{Representación de los eventos y las categorías}
+  \label{fig:c04:EventCategory}
+\end{figure}	
+
+\subsection{Codificación}
+
+\subsubsection{BBDD}
+	Así entonces lo primero que hacemos es modificar el archivo que crea las bases de datos:
+\lstinputlisting[style=sql]{commit04/code/01-CreateTables.sql}
+
+	Si suponemos que el archivo se encuentra en la ubicación \emph{src/sql/01-CreateTables.sql} basta con introducir el siguiente comando para ejecutarlo en el gestor:
+\begin{lstlisting}[style=bash]
+ mysql pojo -u pojo -p < src/sql/01-CreateTables.sql
+\end{lstlisting}
+
+\subsubsection{Java}
+	Es hora de crear la clase persistente en nuestro código que como podemos ver son como las de la clase \emph{Event}
+\lstinputlisting[style=java]{commit04/code/Category.java}
+
+	Ahora nos toca indicar la relación en la clase \emph{Event}, para poder indicar las categorías, para ello añadimos un atributo del tipo \emph{Category} para añadir la categoría a la que pertenece al igual que los métodos get y set para que hibernate pueda tener acceso a ellos. Para indicar la relación podemos hacer uso de la anotación \emph{ManyToOne} a la que le añadimos dos atributos:
+{\setlength{\parskip}{0mm}
+\begin{itemize}
+	\item \textbf{optional}: Indicamos que es \emph{false} para decir que un evento siempre tiene que pertenecer a una categoría.
+	\item \textbf{fetch}: A la hora de que se traiga un objeto evento de la base de datos podemos traer también la categoría a la que pertenece, o no. Si le indicamos que es \emph{FetchType.Lazy}, no traemos el objeto categoría con el que está relacionado, con lo que hibernate mete un objeto proxy del tipo categoría, y en el momento en que se necesite (cuando se quiera acceder a algunos de sus atributos) lo irá buscar a la BBDD. Para que traiga los datos desde un principio hay que especificar \emph{FetchType.EAGER}.
+\end{itemize}
+}
+Una vez que especificamos que el objeto categoría es por la relación MuchosAUno, toca indicar como se mapea. Eso se hace con la anotación \emph{JoinColumn} especificando la columna de la tabla \emph{EVENTS} que se usa como clave foránea (que en este caso se llama \emph{category}).
+\begin{lstlisting}[style=java]
+//[...]
+	private Category category;
+//[...]
+	@ManyToOne(optional=false, fetch=FetchType.LAZY)
+	@JoinColumn(name = "category")
+	public Category getCategory() {
+		return this.category;
+	}
+	public void setCategory(Category category) {
+		this.category = category;
+	}
+//[...]
+\end{lstlisting}
+
+	También hay que indicar a hibernate la creación de la nueva clase persistente eso se hace añadiendo la información en el archivo \emph{hibernate.cfg.xml} la ubicación de la clase
+\begin{lstlisting}[style=xml]
+<mapping class="org.example.tutorials.hibernate.hibernateTutorial.domain.Category"/>
+\end{lstlisting}
+
+	Ya que tenemos la clase persistente para almacenar las categorías vamos a crear un DAO para poder tener acceso a ellas. La interfaz para el DAO de las categorías queda de la siguiente manera:
+\lstinputlisting[style=java]{commit04/code/CategoryDao.java}
+
+	mientras que la implementación del DAO usando hibernate queda:
+\lstinputlisting[style=java]{commit04/code/CategoryDaoHibernate.java}
+
+\subsubsection{Probando la relación entre eventos y categorías}
+	Para probar la parte codificada tenemos que usar las implementaciones de ambos DAOs, el de categorías y el de eventos. El código se muestra a continuación\footnote{Hay que tener en cuenta que, de la manera en la que se creo las tablas y las restricciones en la BBDD, al eliminar las categorías también se eliminan de la BBDD los eventos y, dependiendo de la aplicación, eso puede no ser lo más adecuado}
+\lstinputlisting[style=java]{commit04/code/App.java}
+
+\subsection{Estado del sistema}
+	Al final de esta iteración lo que tenemos es algo como lo que se muestra en la figura \ref{fig:c04:UmlClass}.
+\begin{figure}[h]
+  \centering
+    \includegraphics[width=0.95\textwidth]{commit04/img/UmlClass.pdf}
+  \caption{Diagrama de clases}
+  \label{fig:c04:UmlClass}
+\end{figure}	
+
+
 \clearpage
 \newpage
-\listoffigures
+{\setlength{\parskip}{0mm}\listoffigures}
 
 % Bibliografía.
 %-----------------------------------------------------------------

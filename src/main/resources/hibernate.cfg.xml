@@ -23,11 +23,14 @@
 		<!-- Disable the second-level cache -->
 		<!-- <property name="cache.provider_class">org.hibernate.cache.internal.NoCacheProvider</property> -->
 		
-		<!-- Echo all executed SQL to stdout -->
+		<!-- for efficiency, in real deployment the following debug properties must be removed -->
 		<property name="show_sql">true</property>
+		<property name="format_sql">true</property>
+		<property name="use_sql_comments">true</property>
 		
-		<!-- mapping resources -->
+		<!-- mapping classes -->
 		<mapping class="org.example.tutorials.hibernate.hibernateTutorial.domain.Event"/>
+		<mapping class="org.example.tutorials.hibernate.hibernateTutorial.domain.Category"/>
 		
 	</session-factory>
 </hibernate-configuration>

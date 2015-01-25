@@ -1,7 +1,6 @@
 package org.example.tutorials.hibernate.hibernateTutorial;
 
 import java.util.List;
-
 import org.example.tutorials.hibernate.hibernateTutorial.domain.*;
 import org.example.tutorials.hibernate.hibernateTutorial.utils.HibernateUtil;
 
@@ -12,27 +11,8 @@ import org.example.tutorials.hibernate.hibernateTutorial.utils.HibernateUtil;
 public class App 
 {
 	
- 	private static void printSeparator(String str) {
-		int size = 80;
-		int cnt = 0;
-		if (!str.isEmpty()) {
-			size = size - 2 -str.length();
-			if (size < 4)
-				size = 4;
-		}
-		for (; cnt < size/2; cnt++) {
-			System.out.print("-");
-		}
-		if (!str.isEmpty())
-			System.out.print(" "+str+" ");
-		for (; cnt < size; cnt++) {
-			System.out.print("-");
-		}
-		System.out.println();
-	}
-	private static void printSeparator(){
-		printSeparator("");
-	}
+ 	private static void printSeparator(String str) {...}
+	private static void printSeparator(){...}
 	
 	private EventDao    eventDao;
 	private CategoryDao categoryDao;
@@ -50,25 +30,12 @@ public class App
 		};
 		
 		String waterEvents[] = {
-			"Natacion sincronizada",
-			"Natacion individual",
-			"Waterpolo",
-			"Remo",
-			"Piraguismo",
-			"Esqui acuatico",
-			"Surf",
-			"Vela",
-			"Buceo",
-			"Windsurf",
-			"Rafting",
-			"Pesca deportiva",
-			"Esnorquel",
-			"Jet Ski",
-			"Kayak",
-			"Natacion en aguas abiertas",
-			"Hidrospeed",
-			"Bodyboarding",
-			"Subwing"
+			"Natacion sincronizada", "Natacion individual", "Waterpolo",
+			"Remo", "Piraguismo", "Esqui acuatico",
+			"Surf", "Vela", "Buceo", "Subwing",
+			"Windsurf", "Rafting", "Pesca deportiva",
+			"Esnorquel", "Jet Ski", "Kayak",
+			"Natacion en aguas abiertas", "Hidrospeed", "Bodyboarding"
 		};
 		
 		printSeparator("anadir categorias");
