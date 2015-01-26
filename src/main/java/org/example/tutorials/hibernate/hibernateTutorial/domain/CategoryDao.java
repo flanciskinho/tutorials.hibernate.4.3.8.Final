@@ -9,6 +9,8 @@ import org.example.tutorials.hibernate.hibernateTutorial.utils.GenericDao;
  *
  */
 public interface CategoryDao extends GenericDao<Category, Long>{
-	public List<Category> getCategories(String filter);
 	public Category insertCategory(String desc);
+	
+	public List<Category> getCategoriesByFilter(String filter, int start, int size);
+	public long getNumberOfCategoriesByFilter(String filter);
 }

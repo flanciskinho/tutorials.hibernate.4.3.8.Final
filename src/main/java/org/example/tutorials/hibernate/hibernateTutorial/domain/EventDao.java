@@ -10,6 +10,11 @@ import org.example.tutorials.hibernate.hibernateTutorial.utils.GenericDao;
  */
 public interface EventDao extends GenericDao<Event, Long>{
 	public void removeByFilter(String filter);
-	public List<Event> getEventsByFilter(String filter);
 	public Event insertEvent(String title, Category category);
+	
+	public List<Event> getEventsByFilter(String filter, int start, int size);
+	public long getNumberOfEventsByFilter(String filter);
+	
+	public long getNumberOfEventsByCategory(long categoryId);
+	public List<Event> getEventsByCategory(long categoryId, int start, int size);
 }

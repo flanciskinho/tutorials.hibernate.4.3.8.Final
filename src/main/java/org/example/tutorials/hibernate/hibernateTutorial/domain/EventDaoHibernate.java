@@ -17,9 +17,9 @@ import org.hibernate.Transaction;
 public class EventDaoHibernate
 	extends GenericDaoHibernate<Event, Long>
 	implements EventDao{
-
+	
 	@SuppressWarnings("unchecked")
-	public List<Event> getEventsByFilter(String filter) {
+	public List<Event> getEventsByFilter(String filter, int start, int size) {
 		Session session = HibernateUtil.getSessionFactory().openSession();
     	Transaction transaction = null;
     	
@@ -38,10 +38,13 @@ public class EventDaoHibernate
     				doFilter = true;
     			}
     		}
+    		aux = aux + " ORDER BY e.title";
+    		
     		Query query = session.createQuery(aux);
     		if (doFilter)
     			query.setString("titleFilter", filter.toUpperCase());
-    		list = query.list();
+    		
+    		list = query.setFirstResult(start).setMaxResults(size).list();
     		
     		transaction.commit();
     	} catch (HibernateException e) {
@@ -52,6 +55,43 @@ public class EventDaoHibernate
     	}
     	
     	return list;
+	}
+	
+	public long getNumberOfEventsByFilter(String filter) {
+
+		Session session = HibernateUtil.getSessionFactory().openSession();
+    	Transaction transaction = null;
+    	
+    	long size = 0;
+    	
+    	try {
+    		transaction = session.beginTransaction();
+    	
+    		boolean doFilter = false;
+    		String aux =
+    				"SELECT COUNT(e) " +
+    	    		"FROM Event e ";
+    		if (filter != null) {
+    			if (!filter.trim().isEmpty()) {
+    				aux = aux + "WHERE UPPER(e.title) LIKE CONCAT('%', :titleFilter, '%')";
+    				doFilter = true;
+    			}
+    		}
+    		
+    		Query query = session.createQuery(aux);
+    		if (doFilter)
+    			query.setString("titleFilter", filter.toUpperCase());
+    		
+    		size = (long) query.uniqueResult();
+    		
+    		transaction.commit();
+    	} catch (HibernateException e) {
+    		transaction.rollback();
+    	} finally {
+    		session.close();
+    	}
+    	
+    	return size;
 	}
 
 	public Event insertEvent(String title, Category category) {
@@ -75,7 +115,7 @@ public class EventDaoHibernate
     	
     	return event;
 	}
-	
+		
 	@SuppressWarnings("unchecked")
 	public void removeByFilter(String filter) {
 		Session session = HibernateUtil.getSessionFactory().openSession();
@@ -110,4 +150,63 @@ public class EventDaoHibernate
     	}
 		
 	}
+	
+	@SuppressWarnings("unchecked")
+	public List<Event> getEventsByCategory(long categoryId, int start, int size) {
+		Session session = HibernateUtil.getSessionFactory().openSession();
+    	Transaction transaction = null;
+    	
+    	List<Event> list = null;
+    	try {
+    		transaction = session.beginTransaction();
+    		
+    		Query query = session.createQuery(
+    				"SELECT e " +
+    				"FROM Event e " +
+    				"WHERE e.category.id = :categoryId "+
+    				"ORDER BY e.category.description"
+    		);
+    		
+    		list = query
+    					.setParameter("categoryId", categoryId)
+    					.setFirstResult(start)
+    					.setMaxResults(size)
+    					.list();
+    		
+    		transaction.commit();
+    	} catch (HibernateException e) {
+    		transaction.rollback();
+    	} finally {
+    		session.close();
+    	}
+    	
+    	return list;
+	}
+	
+	public long getNumberOfEventsByCategory(long categoryId){
+		Session session = HibernateUtil.getSessionFactory().openSession();
+    	Transaction transaction = null;
+    	
+    	long size = 0;
+    	try {
+    		transaction = session.beginTransaction();
+    		
+    		Query query = session.createQuery(
+    				"SELECT COUNT(e) " +
+    				"FROM Event e " +
+    				"WHERE e.category.id = :categoryId"
+    		);
+    		
+    		size = (long) query.setParameter("categoryId", categoryId).uniqueResult();
+    		
+    		transaction.commit();
+    	} catch (HibernateException e) {
+    		transaction.rollback();
+    	} finally {
+    		session.close();
+    	}
+    	
+    	return size;
+	}
+	
 }

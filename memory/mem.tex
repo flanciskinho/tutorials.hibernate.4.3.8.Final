@@ -394,7 +394,7 @@ Una vez que especificamos que el objeto categoría es por la relación MuchosAUn
 	mientras que la implementación del DAO usando hibernate queda:
 \lstinputlisting[style=java]{commit04/code/CategoryDaoHibernate.java}
 
-\subsubsection{Probando la relación entre eventos y categorías}
+\subsubsection{Probando la relación entre eventos y categorías}\label{sec:c04:EventCategory}
 	Para probar la parte codificada tenemos que usar las implementaciones de ambos DAOs, el de categorías y el de eventos. El código se muestra a continuación\footnote{Hay que tener en cuenta que, de la manera en la que se creo las tablas y las restricciones en la BBDD, al eliminar las categorías también se eliminan de la BBDD los eventos y, dependiendo de la aplicación, eso puede no ser lo más adecuado}
 \lstinputlisting[style=java]{commit04/code/App.java}
 
@@ -436,6 +436,90 @@ La implementación para el caso de hibernate:
 \begin{figure}[h]
   \centering
     \includegraphics[width=0.95\textwidth]{commit05/img/UmlClass.pdf}
+  \caption{Diagrama de clases}
+  \label{fig:c05:UmlClass}
+\end{figure}	
+
+\section{Commit 6. La BBDD puede tener mucha información}
+	En este apartado vamos a evitar una de las malas prácticas que suele tener las personas que hacen pequeñas aplicaciones o aplicaciones que no se testean con las pruebas adecuadas. Una de las cosas que hay que tener en cuenta es la cantidad de información que se puede almacenar en la BBDD.  Si nos fijamos en el código que tenemos en el \emph{Main} del apartado \ref{sec:c04:EventCategory} podemos ver que para la categoría correspondiente a los deportes de agua tenemos 19 eventos, aunque nada impide tener un millón de eventos. Una de las operaciones que se pueden añadir al DAO de la categoría es la de obtener todos los eventos de una categoría. Si el número de elementos que puede tener un conjunto puede ser muy grande, puede hacer que la preparación de las tuplas seleccionadas en la BBDD lleve mucho tiempo, además que le hay que sumar el tiempo de pasar las tuplas de la BBDD a objetos persistentes de Java, además del consumo de memoria que eso puede suponer.
+	
+	Para solucionar esos problemas se hace uso del patrón \emph{PageByPage} que lo que nos indica es que se traigan los datos poco a poco, por ejemplo de 10 en 10.
+
+\subsection{Implementación del patrón PageByPage}
+	Para el ejemplo de devolver los eventos a las categorías basta con añadir a la interfaz \emph{EventDao.java} dos métodos, uno para obtener una lista acotada de eventos y otra para obtener cual es el número total de elementos y poder saber hasta cuando iterar para obtenerlos todos.
+\begin{lstlisting}[style=java]
+	public long getNumberOfEventsByCategory(long categoryId);
+	public List<Event> getEventsByCategory(long categoryId, int start, int size);
+\end{lstlisting}
+
+	La implementación de dichos métodos con hibernate, que están en la clase 
+\emph{EventDaoHibernate.java}, son de la siguiente manera:
+\begin{lstlisting}[style=java]
+	@SuppressWarnings("unchecked")
+	public List<Event> getEventsByCategory(long categoryId, int start, int size) {
+		Session session = HibernateUtil.getSessionFactory().openSession();
+    	Transaction transaction = null;
+    	
+    	List<Event> list = null;
+    	try {
+    		transaction = session.beginTransaction();
+    		
+    		Query query = session.createQuery(
+    				"SELECT e " +
+    				"FROM Event e " +
+    				"WHERE e.category.id = :categoryId "+
+    				"ORDER BY e.category.description"
+    		);
+    		
+    		list = query
+    					.setParameter("categoryId", categoryId)
+    					.setFirstResult(start)
+    					.setMaxResults(size)
+    					.list();
+    		
+    		transaction.commit();
+    	} catch (HibernateException e) {
+    		transaction.rollback();
+    	} finally {
+    		session.close();
+    	}
+    	
+    	return list;
+	}
+	
+	public long getNumberOfEventsByCategory(long categoryId){
+		Session session = HibernateUtil.getSessionFactory().openSession();
+    	Transaction transaction = null;
+    	
+    	long size = 0;
+    	try {
+    		transaction = session.beginTransaction();
+    		
+    		Query query = session.createQuery(
+    				"SELECT COUNT(e) " +
+    				"FROM Event e " +
+    				"WHERE e.category.id = :categoryId"
+    		);
+    		
+    		size = (long) query.setParameter("categoryId", categoryId).uniqueResult();
+    		
+    		transaction.commit();
+    	} catch (HibernateException e) {
+    		transaction.rollback();
+    	} finally {
+    		session.close();
+    	}
+    	
+    	return size;
+	}
+\end{lstlisting}
+
+\subsection{Estado del sistema}
+	Hay que tener en cuenta que la implementación del patrón PageByPage no es sólo para obtener los elementos de una relación, si no que se ha de implementar en cualquier método que tenga la posibilidad de devolver un conjunto grande de datos.
+	
+\begin{figure}[h]
+  \centering
+    \includegraphics[width=0.95\textwidth]{commit06/img/UmlClass.pdf}
   \caption{Diagrama de clases}
   \label{fig:c05:UmlClass}
 \end{figure}	

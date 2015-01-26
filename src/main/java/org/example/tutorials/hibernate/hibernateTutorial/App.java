@@ -7,6 +7,7 @@ import javax.management.InstanceNotFoundException;
 import org.example.tutorials.hibernate.hibernateTutorial.domain.Category;
 import org.example.tutorials.hibernate.hibernateTutorial.domain.CategoryDao;
 import org.example.tutorials.hibernate.hibernateTutorial.domain.CategoryDaoHibernate;
+import org.example.tutorials.hibernate.hibernateTutorial.domain.Event;
 import org.example.tutorials.hibernate.hibernateTutorial.domain.EventDao;
 import org.example.tutorials.hibernate.hibernateTutorial.domain.EventDaoHibernate;
 import org.example.tutorials.hibernate.hibernateTutorial.utils.HibernateUtil;
@@ -48,6 +49,7 @@ public class App
 	}
     
 	public static void main(String[] args) throws InstanceNotFoundException {
+		int ROWS_PER_PAGE = 10;
 		
 		App app = new App();
 		
@@ -85,7 +87,7 @@ public class App
 		
 		printSeparator();
 		List<Category> list;
-		list = app.categoryDao.getCategories("Agua");
+		list = app.categoryDao.getCategoriesByFilter("Agua", 0, ROWS_PER_PAGE);
 		if (list.size() == 0) {
 			HibernateUtil.stopConnectionProvider();
 			System.out.println("No hay categorias para agua");
@@ -97,8 +99,25 @@ public class App
 			app.eventDao.insertEvent(str, list.get(0));
 		}
 		
+		printSeparator("eventos de una categoría");
+		long size = app.eventDao.getNumberOfEventsByCategory(list.get(0).getId());
+		System.out.println("numero "+size);
+		if (size != 0) {
+			int start = 0;
+			List<Event> events = app.eventDao.getEventsByCategory(list.get(0).getId(), start, ROWS_PER_PAGE);
+			while (!events.isEmpty()) {
+				for (Event event: events) {
+					System.out.println(event.getTitle());
+				}
+				System.out.println(">>>>");
+				start += ROWS_PER_PAGE;
+				events = app.eventDao.getEventsByCategory(list.get(0).getId(), start, ROWS_PER_PAGE);
+			}
+		}
+		printSeparator();
+		
 		printSeparator("eliminando las categorias");
-		list = app.categoryDao.getCategories(null);
+		list = app.categoryDao.getCategoriesByFilter(null, 0, ROWS_PER_PAGE);
 		for (Category category:list) {
 			System.out.println("Delete "+category.getId()+">"+category.getDescription());
 			app.categoryDao.remove(category.getId());
