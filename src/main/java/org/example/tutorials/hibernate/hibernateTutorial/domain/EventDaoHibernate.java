@@ -3,6 +3,7 @@ package org.example.tutorials.hibernate.hibernateTutorial.domain;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.example.tutorials.hibernate.hibernateTutorial.utils.GenericDaoHibernate;
 import org.example.tutorials.hibernate.hibernateTutorial.utils.HibernateUtil;
 import org.hibernate.HibernateException;
 import org.hibernate.Query;
@@ -13,8 +14,11 @@ import org.hibernate.Transaction;
  * @author flanciskinho
  *
  */
-public class EventDaoHibernate implements EventDao{
+public class EventDaoHibernate
+	extends GenericDaoHibernate<Event, Long>
+	implements EventDao{
 
+	@SuppressWarnings("unchecked")
 	public List<Event> getEventsByFilter(String filter) {
 		Session session = HibernateUtil.getSessionFactory().openSession();
     	Transaction transaction = null;
@@ -72,6 +76,7 @@ public class EventDaoHibernate implements EventDao{
     	return event;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public void removeByFilter(String filter) {
 		Session session = HibernateUtil.getSessionFactory().openSession();
     	Transaction transaction = null;
@@ -92,7 +97,7 @@ public class EventDaoHibernate implements EventDao{
     		Query query = session.createQuery(aux);
     		if (doFilter)
     			query.setString("titleFilter", filter.toUpperCase());
-    		List<Event> list = query.list();
+			List<Event> list = query.list();
     		for (Event event:list) {
     			session.delete(event);
     		}

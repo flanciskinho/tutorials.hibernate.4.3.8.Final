@@ -3,6 +3,7 @@ package org.example.tutorials.hibernate.hibernateTutorial.domain;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.example.tutorials.hibernate.hibernateTutorial.utils.GenericDaoHibernate;
 import org.example.tutorials.hibernate.hibernateTutorial.utils.HibernateUtil;
 import org.hibernate.HibernateException;
 import org.hibernate.Query;
@@ -13,8 +14,11 @@ import org.hibernate.Transaction;
  * @author flanciskinho
  *
  */
-public class CategoryDaoHibernate implements CategoryDao {
+public class CategoryDaoHibernate
+	extends GenericDaoHibernate<Category, Long>
+	implements CategoryDao {
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<Category> getCategories(String filter) {
 		Session session = HibernateUtil.getSessionFactory().openSession();
@@ -70,26 +74,6 @@ public class CategoryDaoHibernate implements CategoryDao {
     		session.close();
     	}
     	return category;
-	}
-
-	@Override
-	public void removeCategory(long id) {
-		Session session = HibernateUtil.getSessionFactory().openSession();
-    	Transaction transaction = null;
-    	
-    	try {
-    		transaction = session.beginTransaction();
-    	
-    		Category category = (Category) session.get(Category.class, id);
-    		session.delete(category);
-    		
-    		transaction.commit();
-    	} catch (HibernateException e) {
-    		transaction.rollback();
-    	
-    	} finally {
-    		session.close();
-    	}
 	}
 
 }

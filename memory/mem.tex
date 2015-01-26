@@ -237,7 +237,7 @@ mvn clean compile exec:java -Dexec.mainClass=org.example.tutorials.hibernate.hib
   \label{fig:c01:UmlClass}
 \end{figure}	
 	
-\section{Commit 2. Ordenando el código}
+\section{Commit 2. Ordenando el código}\label{sec:commit2}
 	En la iteración anterior se puso en marcha un ejemplo sencillo para empezar a usar Hibernate y aunque funciona el código este no es estructuralmente correcto. Sería más correcto tratar de ocultar los mecanismos de persistencia de los datos ya que la lógica de negocio tendría que ser independiente del método de persistencia se empleé (debería de dar igual si se usa un SGBD, un archivo plano...). Para estos casos se usa un patrón conocido como DAO\cite{Dao}.
 
 \begin{figure}[h]
@@ -352,11 +352,19 @@ pero hay que indicarle que ahora hay una clase persistente (cuya información de
 	Es hora de crear la clase persistente en nuestro código que como podemos ver son como las de la clase \emph{Event}
 \lstinputlisting[style=java]{commit04/code/Category.java}
 
+\begin{figure}[h]
+  \centering
+    \includegraphics[width=0.8\textwidth]{commit04/img/Proxy.pdf}
+  \caption{Uso de proxy en Hibernate}
+  \label{fig:c04:Proxy}
+\end{figure}	
+
+
 	Ahora nos toca indicar la relación en la clase \emph{Event}, para poder indicar las categorías, para ello añadimos un atributo del tipo \emph{Category} para añadir la categoría a la que pertenece al igual que los métodos get y set para que hibernate pueda tener acceso a ellos. Para indicar la relación podemos hacer uso de la anotación \emph{ManyToOne} a la que le añadimos dos atributos:
 {\setlength{\parskip}{0mm}
 \begin{itemize}
 	\item \textbf{optional}: Indicamos que es \emph{false} para decir que un evento siempre tiene que pertenecer a una categoría.
-	\item \textbf{fetch}: A la hora de que se traiga un objeto evento de la base de datos podemos traer también la categoría a la que pertenece, o no. Si le indicamos que es \emph{FetchType.Lazy}, no traemos el objeto categoría con el que está relacionado, con lo que hibernate mete un objeto proxy del tipo categoría, y en el momento en que se necesite (cuando se quiera acceder a algunos de sus atributos) lo irá buscar a la BBDD. Para que traiga los datos desde un principio hay que especificar \emph{FetchType.EAGER}.
+	\item \textbf{fetch}: A la hora de que se traiga un objeto evento de la base de datos podemos traer también la categoría a la que pertenece, o no. Si le indicamos que es \emph{FetchType.Lazy}, no traemos el objeto categoría con el que está relacionado, con lo que hibernate mete un objeto proxy del tipo categoría, y en el momento en que se necesite (cuando se quiera acceder a algunos de sus atributos) lo irá buscar a la BBDD (véase la figura \ref{fig:c04:Proxy}). Para que traiga los datos desde un principio hay que especificar \emph{FetchType.EAGER}.
 \end{itemize}
 }
 Una vez que especificamos que el objeto categoría es por la relación MuchosAUno, toca indicar como se mapea. Eso se hace con la anotación \emph{JoinColumn} especificando la columna de la tabla \emph{EVENTS} que se usa como clave foránea (que en este caso se llama \emph{category}).
@@ -399,6 +407,38 @@ Una vez que especificamos que el objeto categoría es por la relación MuchosAUn
   \label{fig:c04:UmlClass}
 \end{figure}	
 
+\section{Commit 5. Un DAO para dominarlos a todos}
+
+	Como podemos ver en el escenario que tenemos en este momento (figura \ref{fig:c04:UmlClass}) hay ciertas operaciones básicas sobre las entidades persistentes que se pueden repetir. Estas operaciones básicas son las operaciones \emph{CRUD}\footnote{\emph{CRUD}: \emph{Create}, \emph{Read}, \emph{Update} y \emph{Delete}}.
+
+\subsection{Diseño del DAO genérico}
+	Como hemos podido ver en el apartado \ref{sec:commit2} el patrón DAO proporciona una interfaz para acceso a los datos, donde después dependiendo de la tecnología que se use para la persistencia se tendrá una implementación y otra dependiendo de la tecnología empleada. Esto también se puede realizar con la implementación del DAO genérico, crear una interfaz para dicho DAO y después crear una implementación de dicho DAO, que en este caso será con Hibernate (véase la figura \ref{fig:c05:GenericDao}).
+
+\begin{figure}[h]
+  \centering
+    \includegraphics[width=0.3\textwidth]{commit05/img/GenericDao.pdf}
+  \caption{Diseño de un DAO genérico}
+  \label{fig:c05:GenericDao}
+\end{figure}	
+
+\subsection{Implementación del DAO genérico}
+La interfaz que se muestra a continuación es definición del DAO genérico:
+\lstinputlisting[style=java]{commit05/code/GenericDao.java}
+
+La implementación para el caso de hibernate:
+\lstinputlisting[style=java]{commit05/code/GenericDaoHibernate.java}
+
+\subsection{Estado del sistema}
+	Como podemos ver tenemos un sistema en donde están definidas las clases persistentes y las definiciones del acceso a los datos, además de una interfaz por defecto que sirve para todas las clases persistentes, mientras que la implementación de Hibernate está por separado y se puede reemplazar facilmente por otro método de persistencia.
+	
+	Aunque parezca que el diagrama de clases está creciendo de manera incontrolada (figura \ref{fig:c05:UmlClass}), esto no es cierto. El uso de los DAOs nos ayuda a tener una estructura mucho más ordenada lo que ayudará al mantenimiento de la aplicación porque en cada clase sólo está y hace lo que le corresponde. Además lo añadido en esta iteración, el DAO genérico, nos ayuda a ser más rápidos porque ahora cada vez que queramos crear una clase persistente, las operaciones CRUD ya están implementadas y basta con que el DAO extienda de la implementación genérica para poder ser usadas (además de que estamos siguiendo el principio DRY).
+	
+\begin{figure}[h]
+  \centering
+    \includegraphics[width=0.95\textwidth]{commit05/img/UmlClass.pdf}
+  \caption{Diagrama de clases}
+  \label{fig:c05:UmlClass}
+\end{figure}	
 
 \clearpage
 \newpage

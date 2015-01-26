@@ -2,7 +2,13 @@ package org.example.tutorials.hibernate.hibernateTutorial;
 
 import java.util.List;
 
-import org.example.tutorials.hibernate.hibernateTutorial.domain.*;
+import javax.management.InstanceNotFoundException;
+
+import org.example.tutorials.hibernate.hibernateTutorial.domain.Category;
+import org.example.tutorials.hibernate.hibernateTutorial.domain.CategoryDao;
+import org.example.tutorials.hibernate.hibernateTutorial.domain.CategoryDaoHibernate;
+import org.example.tutorials.hibernate.hibernateTutorial.domain.EventDao;
+import org.example.tutorials.hibernate.hibernateTutorial.domain.EventDaoHibernate;
 import org.example.tutorials.hibernate.hibernateTutorial.utils.HibernateUtil;
 
 /**
@@ -41,7 +47,8 @@ public class App
 		categoryDao = new CategoryDaoHibernate();
 	}
     
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InstanceNotFoundException {
+		
 		App app = new App();
 		
 		String categories[] = {
@@ -94,7 +101,7 @@ public class App
 		list = app.categoryDao.getCategories(null);
 		for (Category category:list) {
 			System.out.println("Delete "+category.getId()+">"+category.getDescription());
-			app.categoryDao.removeCategory(category.getId());
+			app.categoryDao.remove(category.getId());
 		}
 		
 		HibernateUtil.stopConnectionProvider();
