@@ -1,7 +1,8 @@
-package org.example.tutorials.hibernate.hibernateTutorial.domain;
+package org.example.tutorials.hibernate.hibernateTutorial.domain.event;
 
 import java.util.List;
 
+import org.example.tutorials.hibernate.hibernateTutorial.domain.category.Category;
 import org.example.tutorials.hibernate.hibernateTutorial.utils.GenericDao;
 
 /**

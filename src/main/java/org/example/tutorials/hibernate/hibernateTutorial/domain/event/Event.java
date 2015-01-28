@@ -1,4 +1,4 @@
-package org.example.tutorials.hibernate.hibernateTutorial.domain;
+package org.example.tutorials.hibernate.hibernateTutorial.domain.event;
 
 import java.util.Calendar;
 
@@ -11,6 +11,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+
+import org.example.tutorials.hibernate.hibernateTutorial.domain.category.Category;
 
 /**
  * @author flanciskinho

@@ -31,7 +31,9 @@ public class GenericDaoHibernate<E, PK extends Serializable> implements GenericD
 		
 			transaction.commit();
 		} catch (HibernateException e) {
-			transaction.rollback();
+			if (transaction != null)
+				transaction.rollback();
+			System.out.println("\n\n\t"+e.getMessage()+"\n\n");
 		} finally {
 			session.close();
 		}

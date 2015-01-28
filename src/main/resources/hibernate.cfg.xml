@@ -30,9 +30,13 @@
 			<property name="use_sql_comments">true</property>
 		-->
 		 
+		
+		 
 		<!-- mapping classes -->
-		<mapping class="org.example.tutorials.hibernate.hibernateTutorial.domain.Event"/>
-		<mapping class="org.example.tutorials.hibernate.hibernateTutorial.domain.Category"/>
+		<mapping class="org.example.tutorials.hibernate.hibernateTutorial.domain.event.Event"/>
+		<mapping class="org.example.tutorials.hibernate.hibernateTutorial.domain.category.Category"/>
+		<mapping class="org.example.tutorials.hibernate.hibernateTutorial.domain.user.User"/>
+		<mapping class="org.example.tutorials.hibernate.hibernateTutorial.domain.address.Address"/>
 		
 	</session-factory>
 </hibernate-configuration>

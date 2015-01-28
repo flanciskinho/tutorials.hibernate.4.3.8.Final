@@ -1,4 +1,4 @@
-package org.example.tutorials.hibernate.hibernateTutorial.domain;
+package org.example.tutorials.hibernate.hibernateTutorial.domain.category;
 
 import java.util.List;
 

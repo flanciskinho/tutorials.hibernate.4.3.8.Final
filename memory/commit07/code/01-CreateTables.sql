@@ -22,7 +22,7 @@ CREATE TABLE addresses (
     street VARCHAR(50) NOT NULL,
     CONSTRAINT Address_PK
         PRIMARY KEY (id),
-	CONSTRAINT AddressUser
+    CONSTRAINT AddressUser
         FOREIGN KEY (id)
             REFERENCES users(id)
 ) ENGINE = InnoDB;

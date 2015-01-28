@@ -34,6 +34,7 @@
 	tabsize=3,
 	commentstyle=\color{comment},
 	showstringspaces=false,
+	basicstyle=\tiny,
 	numberstyle=\tiny\color{gray45}
 }
 
@@ -314,7 +315,7 @@ pero hay que indicarle que ahora hay una clase persistente (cuya información de
 
 	Una de las cosas por la que también nos decantamos por unificar la información del fichero \emph{Event.hbm.xml} y la clase \emph{Event.java} es que aunque se introduce información en la clase persistente no se introduce información del ORM que estamos usando, de tal manera que sólo las implementaciones de las interfaces de los DAOs saben que ORM están usando.
 
-\section{Commit 4.  Empezando a relacionarse}
+\section{Commit 4.  Empezando a relacionarse} \label{sec:c04:Relationship}
 
 	Hasta ahora hemos empezado a usar hibernate con solo una clase persistente, lo que no es muy realista. Lo normal es que exista más de una clase persistente y existan ciertas relaciones entre ellas. En este aparatado vamos a incluir los eventos en una categoría.
 
@@ -322,7 +323,7 @@ pero hay que indicarle que ahora hay una clase persistente (cuya información de
 \begin{figure}[h]
   \centering
     \includegraphics[width=0.5\textwidth]{commit04/img/ER.pdf}
-  \caption{Diagrama entidad relación}
+  \caption{Gráfico relacional}
   \label{fig:c04:ER}
 \end{figure}	
 
@@ -523,6 +524,43 @@ La implementación para el caso de hibernate:
   \caption{Diagrama de clases}
   \label{fig:c05:UmlClass}
 \end{figure}	
+
+\section{Commit 7. ¿Donde habíamos dejado la relación?}
+
+	En el aparatado \ref{sec:c04:Relationship} se ha mostrado como representar la relación de evento con categorías, que se representaba con una relación \emph{ManyToOne} aunque no es el único tipo de relación que se puede modelar. En este apartado se va a mostrar como representar las relaciones \emph{OneToOne}.
+	
+	Para incluir las nuevas relaciones se va a añadir más clases persistentes al modelo. Los usuarios se podrán registrar en varios eventos. Además los usuarios pueden indicar una dirección a la que se le podrán enviar notificaciones. En este apartado vamos a centrarnos en la parte del usuario con su dirección\footnote{La relación entre los usuarios y los eventos se tratará más adelante en otro apartado}.
+	
+\subsection{Modelado}
+
+	El gráfico relacional de estas nuevas entidades se muestra en la figura \ref{fig:c07:ER}.
+\begin{figure}[h]
+  \centering
+    \includegraphics[width=0.8\textwidth]{commit07/img/ER.pdf}
+  \caption{Gráfico relacional}
+  \label{fig:c07:ER}
+\end{figure}	
+
+\subsection{Codificación}
+	La relación uno a uno que se va a modelar es la relación que hay entre el usuario y su dirección. Una de las cosas que hay que tener en cuenta es como se represento la relación entre un usuario y su dirección. Al ser una relación uno a uno se escogió que, como el usuario siempre va a existir y puede o no tener dirección, la clave foránea esté en la entidad \emph{Address}, además de que su clave primaria es la clave foránea que apunta a la entidad usuario. Esto es importante porque el identificador de la dirección no es autogenerada, sino que es el mismo identificador que el de la tupla del usuario que le corresponda.
+\lstinputlisting[style=sql]{commit07/code/01-CreateTables.sql}
+
+	Hay que acordarse de añadir en el fichero de configuración de hibernate (\emph{hibernate.cfg.xml}) estas nuevas clases persistentes
+\begin{lstlisting}[style=xml]
+<mapping class="org.example.tutorials.hibernate.hibernateTutorial.domain.user.User"/>
+<mapping class="org.example.tutorials.hibernate.hibernateTutorial.domain.address.Address"/>
+\end{lstlisting}
+
+	Así pues la clase \emph{User} queda de la siguiente manera:
+\lstinputlisting[style=java]{commit07/code/User.java}
+
+	y la clase \emph{Address}:
+\lstinputlisting[style=java]{commit07/code/Address.java}
+
+Si nos fijamos en la clase \emph{Address}, se a puesto la anotación \emph{@Id} sin estar seguida de la anotación \emph{@GeneratedValue}, eso es porque la clave no es autogenerada. Para que en el momento de guardar la dirección está pueda tener la clave adecuada se sobrescribe el método \emph{save} en la clase \emph{AddressDaoHibernate}:
+\lstinputlisting[style=java]{commit07/code/AddressDaoHibernate.java}
+
+Otra cosa a tener en cuenta en la clase \emph{Address} es que en la relación se ha puesto la siguiente anotación \emph{@OneToOne(optional=false, fetch=FetchType.EAGER)}, en donde \emph{FetchType.EAGER}, hace que se traiga de BBDD la entidad con la que tiene esa relación\footnote{ {\color{red} Lo normal sería especificar con LAZY la relación, pero al ser una relación uno a uno, se puede considerar asumible traer el objeto de la relación. De todas maneras no es lo más adecuado, es más Hibernate aconseja usar siempre LAZY en todas las relaciones} }.
 
 \clearpage
 \newpage
